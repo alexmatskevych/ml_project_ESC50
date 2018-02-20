@@ -7,44 +7,70 @@ import matplotlib.pyplot as plt
 import numpy as np
 import librosa
 import librosa.feature as feat
+from source.functions import import_sounds, save_all_features_for_all_files
 
 
-def import_sounds(path_to_sound_files):
+def test_func(soundwave,sampling_rate,type="test"):
+
+    print(type)
+
+    feature_list=[]
+    if len(feature_list)==0:
+        feature_list=["chroma_stft","chroma_cqt","chroma_cens","melspectrogram",
+                      "mfcc","rmse","spectral_centroid","spectral_bandwidth",
+                      "spectral_contrast","spectral_flatness","spectral_rolloff",
+                      "poly_features","tonnetz","zero_crossing_rate"]
+
+    features=[]
+
+    if "chroma_stft" in feature_list:
+        features.append(feat.chroma_stft(soundwave, sampling_rate))
+
+    if "chroma_cqt" in feature_list:
+        features.append(feat.chroma_cqt(soundwave, sampling_rate))
+
+    if "chroma_cens" in feature_list:
+        features.append(feat.chroma_cens(soundwave, sampling_rate))
+
+    if "melspectrogram" in feature_list:
+        features.append(feat.melspectrogram(soundwave, sampling_rate))
+
+    if "mfcc" in feature_list:
+        features.append(feat.mfcc(soundwave, sampling_rate))
+
+    if "rmse" in feature_list:
+        features.append(feat.rmse(soundwave))
+
+    if "spectral_centroid" in feature_list:
+        features.append(feat.spectral_centroid(soundwave, sampling_rate))
+
+    if "spectral_bandwidth" in feature_list:
+        features.append(feat.spectral_bandwidth(soundwave, sampling_rate))
+
+    if "spectral_contrast" in feature_list:
+        features.append(feat.spectral_contrast(soundwave, sampling_rate))
+
+    if "spectral_flatness" in feature_list:
+        features.append(feat.spectral_flatness(soundwave))
+
+    if "spectral_rolloff" in feature_list:
+        features.append(feat.spectral_rolloff(soundwave, sampling_rate))
+
+    if "poly_features" in feature_list:
+        features.append(feat.poly_features(soundwave, sampling_rate))
+
+    if "tonnetz" in feature_list:
+        features.append(feat.tonnetz(soundwave, sampling_rate))
+
+    if "zero_crossing_rate" in feature_list:
+        features.append(feat.zero_crossing_rate(soundwave))
 
 
 
-
-    # 1. get sound file names and 2. names of types of sounds
-    sound_file_names=os.listdir(path_to_sound_files)
-    sound_types=[name[4:-4] for name in sound_file_names]
-
-
-    #getting test sound
-    sci_sr,sci_y=sci_wav.read(path_to_sound_files+sound_file_names[-1])
-    sound_waves, sampling_rate = librosa.load(path_to_sound_files+sound_file_names[0],None)
-
-    #processing file
-    chroma_stft=feat.chroma_stft(sound_waves,sampling_rate)
-    chroma_cqt=feat.chroma_cqt(sound_waves,sampling_rate)
-    chroma_cens=feat.chroma_cens(sound_waves,sampling_rate)
-
-    melspectrogram=feat.melspectrogram(sound_waves,sampling_rate)
-    mfcc=feat.mfcc(sound_waves,sampling_rate)
-    rmse=feat.rmse(sound_waves)
-
-    spectral_centroid=feat.spectral_centroid(sound_waves,sampling_rate)
-    spectral_bandwidth=feat.spectral_bandwidth(sound_waves,sampling_rate)
-    spectral_contrast=feat.spectral_contrast(sound_waves,sampling_rate)
-    spectral_flatness=feat.spectral_flatness(sound_waves)
-    spectral_rolloff=feat.spectral_rolloff(sound_waves,sampling_rate)
-
-    poly_features=feat.poly_features(sound_waves,sampling_rate)
-    tonnetz=feat.tonnetz(sound_waves,sampling_rate)
-    zero_crossing_rate=feat.zero_crossing_rate(sound_waves)
+    return np.concatenate(features)
 
 
 
-    return sound_waves,sound_types
 
 
 
@@ -52,5 +78,15 @@ def import_sounds(path_to_sound_files):
 
 if __name__ == '__main__':
 
-    path="../sound_files/"
-    sound_file_names=import_sounds(path)
+    path_for_sound_files="../sound_files/"
+    path_to_save="/mnt/localdata1/amatskev/debugging_ml_project/features_of_all.npy"
+
+    save_all_features_for_all_files(path_for_sound_files,path_to_save)
+
+    #
+    # soundwaves,soundtypes,actual_file_names=import_sounds(path)
+    #
+    # features_of_all=[[test_func(soundwave,samplingrate,soundtypes[idx_cl][idx_soundwave]) for idx_soundwave,(soundwave,samplingrate) in enumerate(cl)]
+    #                  for idx_cl,cl in enumerate(soundwaves)]
+    #
+    # np.save("/mnt/localdata1/amatskev/debugging_ml_project/features_of_all.npy",features_of_all)
