@@ -38,8 +38,14 @@ def import_sounds(path_to_sound_files):
 
 
 def extract_features(soundwave,sampling_rate,feature_list=[],sound_name="test"):
-
-
+    """
+    extracts features with help of librosa
+    :param soundwave: extracted soundwave from file
+    :param sampling_rate: sampling rate
+    :param feature_list: list of features to compute
+    :param sound_name: type of sound, i.e. dog
+    :return: np.array of all features for the soundwave
+    """
     print(sound_name)
 
     if len(feature_list)==0:
@@ -49,7 +55,7 @@ def extract_features(soundwave,sampling_rate,feature_list=[],sound_name="test"):
                       "poly_features","tonnetz","zero_crossing_rate"]
 
     features=[]
-
+    now_len=0
     if "chroma_stft" in feature_list:
         features.append(feat.chroma_stft(soundwave, sampling_rate))
 
@@ -98,22 +104,71 @@ def extract_features(soundwave,sampling_rate,feature_list=[],sound_name="test"):
 
 
 
-def save_all_features_for_all_files(path_to_files,path_to_save):
+def save_all_features_for_all_files(path_to_files,path_to_save=None):
     """
-    computes all paths for all soundfiles and saves them in a feature_vector to a file with the names
+    computes all paths for all soundfiles and saves them in a feature_vector to a file with the names if wanted
 
     :param path_to_files:
     :param path_to_save:
-    :return:
+    :return: 1. array with all features for all soundwaves and 2. all the according classes
     """
     soundwaves,soundtypes,actual_file_names=import_sounds(path_to_files)
 
     features_of_all=[[extract_features(soundwave,samplingrate,sound_name=soundtypes[idx_cl][idx_soundwave]) for idx_soundwave,(soundwave,samplingrate)
                       in enumerate(cl)] for idx_cl,cl in enumerate(soundwaves)]
 
+    if path_to_save!=None:
+        np.save(path_to_save,(features_of_all,soundtypes))
 
-    np.save(path_to_save,(features_of_all,soundtypes))
+    return features_of_all,soundtypes
 
+
+def same_class_means(features,classes):
+    """
+    compute mean and variance of the mean distance between same class for each feature
+
+
+    :param features: array with features for each type of each class
+    :param classes: array with class name for each type of each class
+    :return: array with mean and std of each feature for each class
+    """
+
+
+
+    #compute all the mean features
+    features_mean=np.array([np.mean(features_class,axis=-1) for features_class in features ])
+
+    #this is the output array with all the feature means and variances for each class
+    computed_mean_array=[]
+
+    #iterate over each class
+    for idx_cl,cl in enumerate(classes):
+
+        #nothing to compute
+        if len(cl)<2:
+            continue
+
+        #array containing all the differences between each of the types in one class
+        class_vector=[]
+
+        #iterate over each of the types
+        for idx_type,type in enumerate(cl):
+
+            #only look at the types which were not visited
+            other_type_idx=np.arange(len(cl))[idx_type+1:]
+
+
+            #compute differences to the other classes
+            for idx_others in other_type_idx:
+
+                #substract each type from another only once
+                class_vector.append(np.abs(features_mean[idx_cl][idx_type]-features_mean[idx_cl][idx_others]))
+
+        #compute mean and std
+        computed_mean_array.append(np.array([np.mean(class_vector,axis=0),np.std(class_vector,axis=0)]).transpose())
+
+
+    return computed_mean_array
 
 
 if __name__ == '__main__':
