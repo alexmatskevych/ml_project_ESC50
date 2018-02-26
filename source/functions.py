@@ -55,48 +55,68 @@ def extract_features(soundwave,sampling_rate,feature_list=[],sound_name="test"):
                       "poly_features","tonnetz","zero_crossing_rate"]
 
     features=[]
-    now_len=0
+
+
+    #feature_len
+    #"chroma_stft":12
     if "chroma_stft" in feature_list:
         features.append(feat.chroma_stft(soundwave, sampling_rate))
 
+    #"chroma_cqt":12
     if "chroma_cqt" in feature_list:
         features.append(feat.chroma_cqt(soundwave, sampling_rate))
 
+    #"chroma_cens":12
     if "chroma_cens" in feature_list:
         features.append(feat.chroma_cens(soundwave, sampling_rate))
 
+    #"malspectrogram":128
     if "melspectrogram" in feature_list:
         features.append(feat.melspectrogram(soundwave, sampling_rate))
 
+    #"mfcc":20
     if "mfcc" in feature_list:
         features.append(feat.mfcc(soundwave, sampling_rate))
 
+    #"rmse":1
     if "rmse" in feature_list:
         features.append(feat.rmse(soundwave))
 
+    #"spectral_centroid":1
     if "spectral_centroid" in feature_list:
         features.append(feat.spectral_centroid(soundwave, sampling_rate))
 
+    #"spectral_bandwidth":1
     if "spectral_bandwidth" in feature_list:
         features.append(feat.spectral_bandwidth(soundwave, sampling_rate))
 
+    #"chroma_contrast":7
     if "spectral_contrast" in feature_list:
         features.append(feat.spectral_contrast(soundwave, sampling_rate))
 
+    #"spectral_flatness":1
     if "spectral_flatness" in feature_list:
         features.append(feat.spectral_flatness(soundwave))
 
+    #"spectral_rolloff":1
     if "spectral_rolloff" in feature_list:
         features.append(feat.spectral_rolloff(soundwave, sampling_rate))
 
+    #"poly_features":2
     if "poly_features" in feature_list:
         features.append(feat.poly_features(soundwave, sampling_rate))
 
+    #"tonnetz":6
     if "tonnetz" in feature_list:
         features.append(feat.tonnetz(soundwave, sampling_rate))
 
+    #"zero_crossing_rate":1
     if "zero_crossing_rate" in feature_list:
         features.append(feat.zero_crossing_rate(soundwave))
+
+
+
+
 
 
 
