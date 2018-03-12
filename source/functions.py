@@ -13,7 +13,7 @@ def get_neccecary(return_length=True,return_color=True):
     :param return_color: whether we return color dict
     :return: the color and length dict, to know where each feature starts and ends and which color it has
     """
-    length_array = np.array([
+    length_array = [
         ["chroma_stft", 12],
         ["chroma_cqt", 12],
         ["chroma_cens", 12],
@@ -27,7 +27,7 @@ def get_neccecary(return_length=True,return_color=True):
         ["spectral_rolloff", 1],
         ["poly_features", 2],
         ["tonnetz", 6],
-        ["zero_crossing_rate", 1]])
+        ["zero_crossing_rate", 1]]
 
     color_dict = {
         "chroma_stft": "red",
@@ -208,8 +208,10 @@ def same_class_means(features,classes):
 
 
 
-    #compute all the mean features
+    #compute all the mean features and stds
     features_mean=np.array([np.mean(features_class,axis=-1) for features_class in features ])
+    features_mean_std=np.array([np.std(features_class,axis=-1) for features_class in features ])
+
 
     #this is the output array with all the feature means and variances for each class
     computed_mean_array=[]
@@ -240,11 +242,68 @@ def same_class_means(features,classes):
         #compute mean and std
         computed_mean_array.append(np.array([np.mean(class_vector,axis=0),np.std(class_vector,axis=0)]).transpose())
 
+    #add the stds from the mean of ~6000 values for each feature
+    for idx, mean_std in enumerate(features_mean_std):
+        if len(mean_std) > 1:
+            computed_mean_array[idx][:, 1] += np.mean(features_mean_std[idx], axis=0)
 
     return np.array(computed_mean_array)
 
 
+def class_means_for_each_feature(features,classes):
 
+    length_array,_=get_neccecary()
+
+
+    # compute all the mean features and stds for the ~6000 values for each feature
+    features_mean = np.array([np.mean(features_class, axis=-1) for features_class in features if len(features_class)>1])
+    features_mean_std = np.array([np.std(features_class, axis=-1) for features_class in features if len(features_class)>1])
+
+    #compute means and stds for each class
+    class_features_mean=np.mean(features_mean, axis=1)
+    class_features_mean_std=np.std(features_mean, axis=1)
+
+    #add old stds to new stds
+    mean_of_old_std = np.mean(features_mean_std, axis=1)
+    class_features_mean_std+=mean_of_old_std
+
+    abs_len=0
+
+    #for later returning
+    features_combined=[]
+
+
+
+    # iterate for each feature
+    for type, length in length_array:
+
+
+        # create new array for current feature for all classes
+        to_combine = class_features_mean[:,abs_len:abs_len + length]
+        old_std_to_combine=class_features_mean_std[:,abs_len:abs_len + length]
+
+        # compute mean for the array
+        mean_tc = np.mean(to_combine, axis=1)
+
+        # again compute the std of new mean
+        std_of_mean_tc = np.std(to_combine, axis=1)
+
+        #compute the mean of old std
+        std_of_mean_tc+=np.mean(old_std_to_combine, axis=1)
+
+        #append in array
+        features_combined.append([mean_tc,std_of_mean_tc])
+
+        # prepare length for next iteration
+        abs_len += length
+
+
+    #fiddeling with axes so that we have (class,feature,type={mean,std})
+    features_combined=np.array(features_combined)
+    features_combined=features_combined.transpose()
+    features_combined=np.swapaxes(features_combined,1,2)
+
+    return features_combined
 
 def visualize_same_class_features(mean_feature_vector, combine_each_single_feature=True):
     """
@@ -311,7 +370,86 @@ def visualize_same_class_features(mean_feature_vector, combine_each_single_featu
     plt.ylabel('Std')
     plt.title("All classes combined")
     plt.legend()
-    
+
+    #show graph
+    plt.show()
+
+
+def visualize_distances_between_class_features(mean_feature_vector, combine_each_single_feature=True):
+    """
+
+
+    :param mean_feature_vector: all the features of each class stacked
+    :param combine_each_single_feature: wehether we show one combined point
+            for each class or for each index of each array (nearly each feature has more than one index in the feature array)
+    :return: nothing
+    """
+
+    #get the color and length dict, to know where each feature starts and ends
+    length_array,color_dict=get_neccecary()
+
+
+    abs_len=0
+
+    #for each class, compute the mean for each indice for each feature
+    for type,length in length_array:
+        pass
+
+
+
+    #combine all classes into one
+    mean_combined=np.mean(mean_feature_vector,axis=0)
+
+    #compute the std of the mean
+    std_of_means=np.std(mean_feature_vector,axis=0)[:,0]
+
+    #create new array and add the mean of the old stds to the std of the new means
+    new_feature_vector_combined=mean_combined
+    new_feature_vector_combined[:,1]+=std_of_means
+
+
+
+    abs_len=0
+
+    #iterate for each feature
+    for type,length in length_array:
+
+        #if we show more than one dot per feature or not
+        if combine_each_single_feature==False:
+
+            #plot the dots
+            plt.plot(new_feature_vector_combined[abs_len:abs_len+length,0],
+                     new_feature_vector_combined[abs_len:abs_len+length,1],
+                        'ro',label=type,color=color_dict[type])
+
+
+        #if we show only one dot per feature or not
+        else:
+
+            #create new array for current feature
+            to_combine=new_feature_vector_combined[abs_len:abs_len+length]
+
+            #compute mean for the array
+            mean_tc=np.mean(to_combine,axis=0)
+
+            #again compute the std of new mean
+            std_of_mean_tc=np.std(to_combine,axis=0)[0]
+
+            #add the std of the new means to the mean of the old stds
+            mean_tc[1]+=std_of_mean_tc
+
+            #plot the dots
+            plt.plot(mean_tc[0],mean_tc[1],'ro',label=type,color=color_dict[type])
+
+        #prepare length for next iteration
+        abs_len+=length
+
+    #construct labels for graph
+    plt.xlabel('Mean')
+    plt.ylabel('Std')
+    plt.title("All classes combined")
+    plt.legend()
+
     #show graph
     plt.show()
 

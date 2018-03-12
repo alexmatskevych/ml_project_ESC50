@@ -8,7 +8,7 @@ import numpy as np
 import librosa
 import librosa.feature as feat
 from source.functions import import_sounds, save_all_features_for_all_files,same_class_means,\
-    extract_features,visualize_same_class_features
+    extract_features,visualize_same_class_features,visualize_distances_between_class_features,class_means_for_each_feature
 import matplotlib.pyplot as plt
 
 def visualize_same_class_features_alt(mean_feature_vector,classes):
@@ -159,10 +159,11 @@ if __name__ == '__main__':
     classes=classes[:-1]
     features=np.array(features)
 
-    computed_mean_array=same_class_means(features,classes)
-
+    computed_mean_array=class_means_for_each_feature(features,classes)
 
     visualize_same_class_features(computed_mean_array,True)
+
+    visualize_distances_between_class_features(computed_mean_array,True)
 
     # save_all_features_for_all_files(path_for_sound_files,path_to_save)
 
