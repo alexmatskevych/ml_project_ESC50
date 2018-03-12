@@ -4,6 +4,59 @@ import scipy.io.wavfile as sci_wav
 import os
 import librosa
 import librosa.feature as feat
+import matplotlib.pyplot as plt
+
+def get_neccecary(return_length=True,return_color=True):
+    """
+
+    :param return_length: whether we return length array
+    :param return_color: whether we return color dict
+    :return: the color and length dict, to know where each feature starts and ends and which color it has
+    """
+    length_array = np.array([
+        ["chroma_stft", 12],
+        ["chroma_cqt", 12],
+        ["chroma_cens", 12],
+        ["malspectrogram", 128],
+        ["mfcc", 20],
+        ["rmse", 1],
+        ["spectral_centroid", 1],
+        ["spectral_bandwidth", 1],
+        ["chroma_contrast", 7],
+        ["spectral_flatness", 1],
+        ["spectral_rolloff", 1],
+        ["poly_features", 2],
+        ["tonnetz", 6],
+        ["zero_crossing_rate", 1]])
+
+    color_dict = {
+        "chroma_stft": "red",
+        "chroma_cqt": "gold",
+        "chroma_cens": "palegreen",
+        "malspectrogram": "violet",
+        "mfcc": "mediumblue",
+        "rmse": "orangered",
+        "spectral_centroid": "teal",
+        "spectral_bandwidth": "lightpink",
+        "chroma_contrast": "black",
+        "spectral_flatness": "sienna",
+        "spectral_rolloff": "darkorange",
+        "poly_features": "darkgreen",
+        "tonnetz": "yellow",
+        "zero_crossing_rate": "skyblue"
+    }
+
+    if return_length and return_color:
+        return length_array,color_dict
+
+    elif return_length and not return_color:
+        return length_array
+
+    elif not return_length and return_color:
+        return color_dict
+
+
+
 
 def import_sounds(path_to_sound_files):
     """
@@ -188,7 +241,79 @@ def same_class_means(features,classes):
         computed_mean_array.append(np.array([np.mean(class_vector,axis=0),np.std(class_vector,axis=0)]).transpose())
 
 
-    return computed_mean_array
+    return np.array(computed_mean_array)
+
+
+
+
+def visualize_same_class_features(mean_feature_vector, combine_each_single_feature=True):
+    """
+
+
+    :param mean_feature_vector: all the features of each class stacked
+    :param combine_each_single_feature: wehether we show one combined point
+            for each class or for each index of each array (nearly each feature has more than one index in the feature array)
+    :return: nothing
+    """
+
+    #get the color and length dict, to know where each feature starts and ends
+    length_array,color_dict=get_neccecary()
+
+    #combine all classes into one
+    mean_combined=np.mean(mean_feature_vector,axis=0)
+
+    #compute the std of the mean
+    std_of_means=np.std(mean_feature_vector,axis=0)[:,0]
+
+    #create new array and add the mean of the old stds to the std of the new means
+    new_feature_vector_combined=mean_combined
+    new_feature_vector_combined[:,1]+=std_of_means
+
+
+
+    abs_len=0
+
+    #iterate for each feature
+    for type,length in length_array:
+
+        #if we show more than one dot per feature or not
+        if combine_each_single_feature==False:
+
+            #plot the dots
+            plt.plot(new_feature_vector_combined[abs_len:abs_len+length,0],
+                     new_feature_vector_combined[abs_len:abs_len+length,1],
+                        'ro',label=type,color=color_dict[type])
+
+
+        #if we show only one dot per feature or not
+        else:
+
+            #create new array for current feature
+            to_combine=new_feature_vector_combined[abs_len:abs_len+length]
+
+            #compute mean for the array
+            mean_tc=np.mean(to_combine,axis=0)
+
+            #again compute the std of new mean
+            std_of_mean_tc=np.std(to_combine,axis=0)[0]
+
+            #add the std of the new means to the mean of the old stds
+            mean_tc[1]+=std_of_mean_tc
+
+            #plot the dots
+            plt.plot(mean_tc[0],mean_tc[1],'ro',label=type,color=color_dict[type])
+
+        #prepare length for next iteration
+        abs_len+=length
+
+    #construct labels for graph
+    plt.xlabel('Mean')
+    plt.ylabel('Std')
+    plt.title("All classes combined")
+    plt.legend()
+    
+    #show graph
+    plt.show()
 
 
 if __name__ == '__main__':
