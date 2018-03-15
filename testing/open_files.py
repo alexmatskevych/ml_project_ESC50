@@ -7,8 +7,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import librosa
 import librosa.feature as feat
-from source.functions import import_sounds, save_all_features_for_all_files,same_class_means,\
-    extract_features,visualize_same_class_features,visualize_distances_between_class_features,class_means_for_each_feature
+from source.functions import import_sounds, save_all_features_for_all_files,same_class_inner_distance_means_for_each_class,\
+    extract_features,visualize_same_class_features,visualize_distances_between_class_features,class_means_for_each_feature,\
+    show_each_indice_for_each_feature,split_sound_files,split_wrapper,sort_classes,\
+    compute_mean_distances_between_class_features,visualize_mean_features,test_out_rf
 import matplotlib.pyplot as plt
 
 def visualize_same_class_features_alt(mean_feature_vector,classes):
@@ -147,23 +149,63 @@ def visualize_same_class_features_combined(mean_feature_vector,classes):
 
 
 
+
+
 if __name__ == '__main__':
 
-    path_for_sound_files="../sound_files/"
-    path_to_save="/mnt/localdata1/amatskev/debugging_ml_project/features_of_all.npy"
-    # sound_waves, sound_types, sound_file_names=import_sounds(path_for_sound_files)
-    # extract_features(sound_waves[0][0][0],sound_waves[0][0][1])
+    # path_for_sound_files="/export/home/amatskev/ml_project_ESC50/sound_files/"
 
-    features,classes=np.load(path_to_save)
+    path_for_sound_files="/mnt/localdata1/amatskev/environmental-sound-classification-50/split_files/"
+    path_to_save="/mnt/localdata1/amatskev/environmental-sound-classification-50/features_of_all_scipy.npy"
 
-    classes=classes[:-1]
-    features=np.array(features)
+    features_path="/mnt/localdata1/amatskev/environmental-sound-classification-50/features_of_all_sorted_split.npy"
 
-    computed_mean_array=class_means_for_each_feature(features,classes)
+    # sound_waves_librosa, sound_types, sound_file_names=import_sounds(path_for_sound_files,False)
+    # sound_waves_scipy, sound_types, sound_file_names=import_sounds(path_for_sound_files,True)
 
-    visualize_same_class_features(computed_mean_array,True)
 
-    visualize_distances_between_class_features(computed_mean_array,True)
+    # save_all_features_for_all_files(path_for_sound_files,path_to_save)
+
+    # sound_waves,sound_types
+
+    # sound_waves=split_sound_files(sound_waves_scipy,sound_types)
+
+
+
+
+    # features_scipy=extract_features(np.float64(sound_waves_scipy[0][0][1]),sound_waves_scipy[0][0][0])
+    # features_librosa=extract_features(sound_waves_librosa[0][0][0],sound_waves_librosa[0][0][1])
+    #
+    #
+    features,classes=np.load(features_path)
+
+    test_out_rf(features,classes)
+    # features=np.array([[[np.array(feature) for feature in type] for type in cl] for cl in features])
+
+    # new_sorted=sort_classes(features,classes)
+    #
+    # np.save("/mnt/localdata1/amatskev/environmental-sound-classification-50/features_of_all_sorted_split.npy",new_sorted)
+    # np.save(features_path,(features, classes))
+    # features, classes=np.load("/mnt/localdata1/amatskev/environmental-sound-classification-50/features_of_all_sorted_split_test.npy")
+
+    #
+    # classes=classes[:-1]
+    # features=np.array(features)
+    #
+    # show_each_indice_for_each_feature(features,classes)
+
+    # computed_mean_array_inner_distances=same_class_inner_distance_means_for_each_class(features,classes)
+    # visualize_same_class_features(computed_mean_array_inner_distances,np.concatenate(classes),True,False)
+    #
+    #
+    #
+    # computed_mean_array_for_each_class=class_means_for_each_feature(features,classes)
+    # mean_distances_between_class_features=compute_mean_distances_between_class_features(computed_mean_array_for_each_class,np.concatenate(classes),True)
+    #
+    # leave_out_features=["malspectrogram","spectral_rolloff","spectral_centroid","spectral_bandwidth","poly_features"]
+    #
+    # visualize_mean_features(np.mean(computed_mean_array_inner_distances,axis=0),"Inner distances",leave_out_features)
+    # visualize_mean_features(np.mean(mean_distances_between_class_features,axis=0),"Distances between classes",leave_out_features)
 
     # save_all_features_for_all_files(path_for_sound_files,path_to_save)
 
